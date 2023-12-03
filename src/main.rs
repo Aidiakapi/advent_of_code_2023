@@ -1,10 +1,13 @@
 #![feature(array_windows)]
 #![feature(box_into_inner)]
 #![feature(byte_slice_trim_ascii)]
+#![feature(coroutines)]
 #![feature(generic_const_exprs)]
 #![feature(get_many_mut)]
+#![feature(iter_from_coroutine)]
 #![feature(let_chains)]
 #![feature(never_type)]
+#![feature(slice_partition_dedup)]
 #![feature(stmt_expr_attributes)]
 
 #![allow(incomplete_features)]
@@ -19,4 +22,5 @@ mod prelude;
 framework::main!(
     day01,
     day02,
+    day03,
 );

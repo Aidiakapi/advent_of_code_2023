@@ -68,6 +68,26 @@ impl Offset {
         Offset::X_NEG_Y_POS,
         Offset::X_NEG_Y_NEG,
     ];
+    pub const ALL_X_NEG: [Offset; 3] = [
+        Offset::X_NEG_Y_NEG,
+        Offset::X_NEG,
+        Offset::X_NEG_Y_POS,
+    ];
+    pub const ALL_X_POS: [Offset; 3] = [
+        Offset::X_POS_Y_NEG,
+        Offset::X_POS,
+        Offset::X_POS_Y_POS,
+    ];
+    pub const ALL_Y_NEG: [Offset; 3] = [
+        Offset::X_NEG_Y_NEG,
+        Offset::Y_NEG,
+        Offset::X_POS_Y_NEG,
+    ];
+    pub const ALL_Y_POS: [Offset; 3] = [
+        Offset::X_NEG_Y_POS,
+        Offset::Y_POS,
+        Offset::X_POS_Y_POS,
+    ];
 
     /// Rotates a positive X to positive Y
     pub const fn rot_90(self) -> Offset {
@@ -178,6 +198,7 @@ pub trait Neighbors: Neighbor + Clone {
 
 impl<T: Neighbor + Clone> Neighbors for T {}
 
+#[derive(Debug, Clone, Copy)]
 pub struct NeighborIter<T: Clone + Neighbor, const N: usize> {
     base: T,
     offsets: &'static [Offset; N],
@@ -212,6 +233,7 @@ pub trait NeighborsAlong: Neighbor + Clone {
 
 impl<T: Neighbor + Clone> NeighborsAlong for T {}
 
+#[derive(Debug, Clone, Copy)]
 pub struct NeighborsAlongIter<T> {
     value: Option<T>,
     direction: Offset,

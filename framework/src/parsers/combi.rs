@@ -33,6 +33,10 @@ pub trait ParserCombiExt<'s>: Sized + Parser<'s> {
     fn opt(self) -> Opt<Self> {
         Opt(self)
     }
+
+    fn filter<F: Fn(&Self::Output) -> bool>(self, f: F) -> Filter<Self, F> {
+        Filter(self, f)
+    }
 }
 
 impl<'s, P1: Parser<'s>> ParserCombiExt<'s> for P1 {}
@@ -121,5 +125,24 @@ impl<'s, P: Parser<'s>> Parser<'s> for Opt<P> {
             Ok((value, remainder)) => (Some(value), remainder),
             _ => (None, input),
         })
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Filter<P, F>(P, F);
+impl<'s, P: Parser<'s>, F: Fn(&P::Output) -> bool> Parser<'s> for Filter<P, F> {
+    type Output = P::Output;
+
+    fn parse(&self, input: &'s [u8]) -> ParseResult<'s, Self::Output> {
+        match self.0.parse(input) {
+            Ok((v, rem)) => {
+                if self.1(&v) {
+                    Ok((v, rem))
+                } else {
+                    Err((ParseError::FilterDoesNotMatch, input))
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 }
