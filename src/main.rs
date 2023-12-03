@@ -17,4 +17,5 @@
 mod prelude;
 
 framework::main!(
+    day01,
 );

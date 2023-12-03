@@ -5,13 +5,14 @@ edition = "2021"
 
 [dependencies]
 ahash = "0.8"
+arrayvec = "0.7"
 framework = { path = "./framework", package = "advent_of_code_framework" }
-itertools = "0.10"
+itertools = "0.12"
 num = "0.4"
-rayon = "1.6.1"
+rayon = "1.6"
 
 [dev-dependencies]
-criterion = "0.4"
+criterion = "0.5"
 criterion-macro = "0.4"
 
 [features]
