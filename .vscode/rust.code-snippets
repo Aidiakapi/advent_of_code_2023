@@ -1,0 +1,6 @@
+{
+    "day": {
+        "prefix": "day",
+        "body": "framework::day!(${1}, parse => pt1, pt2);\n\nfn pt1(input: &[${2:usize}]) -> Result<u32> {\n    Err(Error::NotImplemented)\n}\n\nfn pt2(input: &[${2:usize}]) -> Result<u32> {\n    Err(Error::NotImplemented)\n}\n\nfn parse(input: &[u8]) -> Result<Vec<${2:usize}>> {\n    use parsers::*;\n    ${3:Err(Error::NotImplemented)}\n}\n\n// tests! {\n//     const EXAMPLE: &'static [u8] = b\"\\\n// \";\n//\n//     test_pt!(parse, pt1, EXAMPLE => 7);\n//     // test_pt!(parse, pt2, EXAMPLE => 5);\n// }\n"
+    }
+}

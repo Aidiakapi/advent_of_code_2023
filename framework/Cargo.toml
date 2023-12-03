@@ -1,0 +1,12 @@
+[package]
+name = "advent_of_code_framework"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ahash = "0.8"
+colored = "2.0"
+num = "0.4"
+paste = "1.0"
+thiserror = "1.0"
+ureq = "2.5"

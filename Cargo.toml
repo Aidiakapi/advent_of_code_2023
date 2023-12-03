@@ -1,0 +1,23 @@
+[package]
+name = "advent_of_code_2023"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ahash = "0.8"
+framework = { path = "./framework", package = "advent_of_code_framework" }
+itertools = "0.10"
+num = "0.4"
+rayon = "1.6.1"
+
+[dev-dependencies]
+criterion = "0.4"
+criterion-macro = "0.4"
+
+[features]
+criterion = []
+
+[workspace]
+members = [
+    "framework"
+]
