@@ -1,5 +1,3 @@
-use arrayvec::ArrayVec;
-
 framework::day!(03, parse => pt1, pt2);
 
 type Vec2 = framework::vecs::Vec2<usize>;

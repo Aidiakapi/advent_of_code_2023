@@ -1,5 +1,3 @@
-use arrayvec::ArrayVec;
-
 framework::day!(02, parse => pt1, pt2);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
