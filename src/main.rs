@@ -1,3 +1,4 @@
+#![feature(array_chunks)]
 #![feature(array_windows)]
 #![feature(box_into_inner)]
 #![feature(byte_slice_trim_ascii)]
@@ -26,4 +27,5 @@ framework::main!(
     day04,
     day05,
     day06,
+    day07,
 );
