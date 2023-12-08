@@ -41,8 +41,7 @@ fn starts_with_digit_pt2(str: &[u8]) -> Option<u8> {
     SPELLED_DIGITS
         .iter()
         .enumerate()
-        .filter(|(_, digit)| str.starts_with(digit))
-        .next()
+        .find(|(_, digit)| str.starts_with(digit))
         .map(|(idx, _)| (idx + 1) as u8)
 }
 

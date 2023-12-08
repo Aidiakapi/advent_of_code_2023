@@ -3,7 +3,7 @@ framework::day!(03, parse => pt1, pt2);
 type Vec2 = framework::vecs::Vec2<usize>;
 type Grid = VecGrid<u8>;
 
-fn iter_ranges<'g>(grid: &'g Grid) -> impl Iterator<Item = (Vec2, usize)> + 'g {
+fn iter_ranges(grid: &Grid) -> impl Iterator<Item = (Vec2, usize)> + '_ {
     std::iter::from_coroutine(|| {
         for y in 0..grid.height() {
             let mut x = 0;

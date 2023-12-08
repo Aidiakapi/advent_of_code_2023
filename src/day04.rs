@@ -35,8 +35,8 @@ fn pt2(input: &[Card]) -> u32 {
     let mut card_count = vec![1; input.len()];
     for (i, card) in input.iter().enumerate() {
         let multiplier = card_count[i];
-        for j in i + 1..i + 1 + matching_card_count(card) {
-            card_count[j] += multiplier;
+        for count in card_count.iter_mut().skip(i + 1).take(matching_card_count(card)) {
+            *count += multiplier;
         }
     }
     card_count.iter().sum()
