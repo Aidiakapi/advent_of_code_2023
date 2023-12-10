@@ -1,5 +1,5 @@
-use crate::iter::LendingIterator;
-use std::mem::MaybeUninit;
+use crate::iter::{DoubleEndedLendingIterator, LendingIterator};
+use std::{marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
 
 pub fn init_array<T, E, const N: usize>(
     mut f: impl FnMut(usize) -> Result<T, E>,
@@ -60,28 +60,45 @@ impl<T> SliceExt<T> for [T] {
 
     fn windows_mut<const N: usize>(&mut self) -> WindowsMut<'_, T, N> {
         WindowsMut {
-            slice: self,
-            index: 0,
+            ptr: unsafe { NonNull::new_unchecked(self.as_mut_ptr()) },
+            len: self.len(),
+            _marker: PhantomData,
         }
     }
 }
 
-pub struct WindowsMut<'s, T, const N: usize> {
-    slice: &'s mut [T],
-    index: usize,
+pub struct WindowsMut<'a, T, const N: usize> {
+    ptr: NonNull<T>,
+    len: usize,
+    _marker: PhantomData<&'a mut T>,
 }
 
-impl<'s, T: 's, const N: usize> LendingIterator for WindowsMut<'s, T, N> {
+impl<'a, T: 'a, const N: usize> LendingIterator for WindowsMut<'a, T, N> {
     type Item<'e> = &'e mut [T; N] where Self: 'e, T: 'e;
 
     fn next(&mut self) -> Option<Self::Item<'_>> {
-        let index = self.index;
-        if index + N > self.slice.len() {
+        if self.len < N {
             return None;
         }
-        self.index = index + 1;
+        unsafe {
+            let result = &mut *(self.ptr.as_ptr() as *mut [T; N]);
+            self.ptr = self.ptr.add(1);
+            self.len -= 1;
+            Some(result)
+        }
+    }
+}
 
-        unsafe { Some(&mut *(self.slice.as_mut_ptr().add(index) as *mut [T; N])) }
+impl<'a, T: 'a, const N: usize> DoubleEndedLendingIterator for WindowsMut<'a, T, N> {
+    fn next_back(&mut self) -> Option<Self::Item<'_>> {
+        if self.len < N {
+            return None;
+        }
+        unsafe {
+            let result = &mut *(self.ptr.as_ptr().add(self.len - N) as *mut [T; N]);
+            self.len -= 1;
+            Some(result)
+        }
     }
 }
 

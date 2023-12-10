@@ -111,6 +111,12 @@ where
 }
 
 pub trait LendingIterator {
-    type Item<'e> where Self: 'e;
+    type Item<'e>
+    where
+        Self: 'e;
     fn next(&mut self) -> Option<Self::Item<'_>>;
+}
+
+pub trait DoubleEndedLendingIterator: LendingIterator {
+    fn next_back(&mut self) -> Option<Self::Item<'_>>;
 }
