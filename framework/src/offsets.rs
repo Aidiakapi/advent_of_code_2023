@@ -68,26 +68,10 @@ impl Offset {
         Offset::X_NEG_Y_POS,
         Offset::X_NEG_Y_NEG,
     ];
-    pub const ALL_X_NEG: [Offset; 3] = [
-        Offset::X_NEG_Y_NEG,
-        Offset::X_NEG,
-        Offset::X_NEG_Y_POS,
-    ];
-    pub const ALL_X_POS: [Offset; 3] = [
-        Offset::X_POS_Y_NEG,
-        Offset::X_POS,
-        Offset::X_POS_Y_POS,
-    ];
-    pub const ALL_Y_NEG: [Offset; 3] = [
-        Offset::X_NEG_Y_NEG,
-        Offset::Y_NEG,
-        Offset::X_POS_Y_NEG,
-    ];
-    pub const ALL_Y_POS: [Offset; 3] = [
-        Offset::X_NEG_Y_POS,
-        Offset::Y_POS,
-        Offset::X_POS_Y_POS,
-    ];
+    pub const ALL_X_NEG: [Offset; 3] = [Offset::X_NEG_Y_NEG, Offset::X_NEG, Offset::X_NEG_Y_POS];
+    pub const ALL_X_POS: [Offset; 3] = [Offset::X_POS_Y_NEG, Offset::X_POS, Offset::X_POS_Y_POS];
+    pub const ALL_Y_NEG: [Offset; 3] = [Offset::X_NEG_Y_NEG, Offset::Y_NEG, Offset::X_POS_Y_NEG];
+    pub const ALL_Y_POS: [Offset; 3] = [Offset::X_NEG_Y_POS, Offset::Y_POS, Offset::X_POS_Y_POS];
 
     /// Rotates a positive X to positive Y
     pub const fn rot_90(self) -> Offset {
@@ -177,6 +161,16 @@ impl Offset {
             },
             ax as usize,
         ))
+    }
+
+    pub fn raw(self) -> u8 {
+        self.value
+    }
+    pub fn from_raw(value: u8) -> Offset {
+        assert!(value & 0b1111 == value, "Invalid bits set.");
+        assert!(value & 0b0101 != 0b0101, "Cannot be both X_NEG and X_POS");
+        assert!(value & 0b1010 != 0b1010, "Cannot be both Y_NEG and Y_POS");
+        Self { value }
     }
 }
 
