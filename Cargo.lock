@@ -28,6 +28,7 @@ name = "advent_of_code_framework"
 version = "0.1.0"
 dependencies = [
  "ahash",
+ "bitvec",
  "colored",
  "num",
  "paste",

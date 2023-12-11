@@ -1,13 +1,12 @@
-use crate::parsers::ParseError;
+use crate::{parsers::ParseError, vecs::Vec2};
+use bitvec::prelude::*;
 use std::{
     ops::{Index, IndexMut},
     slice::{Iter, IterMut},
 };
 
-type Vec2 = crate::vecs::Vec2<usize>;
-
 /// A 2D grid
-pub trait Grid<T>: Sized + IndexMut<Self::Indexer> {
+pub trait Grid<T>: Sized + Index<Self::Indexer> {
     type Indexer;
     type Builder: GridBuilder<T, Output = Self>;
 }
@@ -21,55 +20,122 @@ pub trait GridBuilder<T> {
     fn finish(self) -> Result<Self::Output, ParseError>;
 }
 
-#[derive(Debug, Clone)]
-pub struct VecGrid<T> {
-    size: Vec2,
-    data: Vec<T>,
-}
+macro_rules! impl_continuous_grid {
+    ($ty_name:ident, $builder_ty_name:ident, $index:ty, $storage:ty, $element:ty, [$($generics:tt)*]) => {
+        #[derive(Debug, Clone)]
+        pub struct $ty_name$($generics)* {
+            size: Vec2<$index>,
+            data: $storage,
+        }
 
-#[derive(Debug, Clone)]
-pub struct VecGridBuilder<T> {
-    width: Option<usize>,
-    x: usize,
-    data: Vec<T>,
-}
+        #[derive(Debug, Clone)]
+        pub struct $builder_ty_name$($generics)* {
+            width: Option<$index>,
+            x: $index,
+            data: $storage,
+        }
 
-impl<T> Grid<T> for VecGrid<T> {
-    type Indexer = Vec2;
-    type Builder = VecGridBuilder<T>;
-}
+        impl$($generics)* Grid<$element> for $ty_name$($generics)* {
+            type Indexer = Vec2<$index>;
+            type Builder = $builder_ty_name$($generics)*;
+        }
 
-impl<T> VecGrid<T> {
-    pub fn new(size: impl Into<Vec2>, initializer: impl FnMut(Vec2) -> T) -> VecGrid<T> {
-        fn internal<T>(size: Vec2, mut initializer: impl FnMut(Vec2) -> T) -> VecGrid<T> {
-            assert!(size.x > 0);
-            assert!(size.y > 0);
-            let mut data = Vec::with_capacity(size.x * size.y);
-            for y in 0..size.y {
-                for x in 0..size.x {
-                    data.push(initializer(Vec2::new(x, y)));
+        impl$($generics)* $ty_name$($generics)* {
+            #[inline]
+            pub fn size(&self) -> Vec2<$index> {
+                self.size
+            }
+
+            #[inline]
+            pub fn width(&self) -> $index {
+                self.size.x
+            }
+
+            #[inline]
+            pub fn height(&self) -> $index {
+                self.size.y
+            }
+        }
+
+        impl$($generics)* GridBuilder<$element> for $builder_ty_name$($generics)* {
+            type Output = $ty_name$($generics)*;
+            fn new() -> Self {
+                Self {
+                    width: None,
+                    x: 0,
+                    data: <$storage>::new(),
                 }
             }
-            VecGrid { size, data }
+
+            fn is_empty(&self) -> bool {
+                self.data.is_empty()
+            }
+
+            fn push_cell(&mut self, cell: $element) -> Result<(), ParseError> {
+                if let Some(width) = self.width {
+                    if self.x >= width {
+                        return Err(ParseError::GridCellAfterEndOfRowReached);
+                    }
+                }
+                self.data.push(cell);
+                self.x += 1;
+                Ok(())
+            }
+
+            fn advance_next_line(&mut self) -> Result<(), ParseError> {
+                if let Some(width) = self.width {
+                    if self.x != width {
+                        return Err(ParseError::GridIncompleteRow);
+                    }
+                } else {
+                    self.width = Some(self.x);
+                }
+                self.x = 0;
+                Ok(())
+            }
+
+            fn finish(mut self) -> Result<Self::Output, ParseError> {
+                if self.width.is_none() {
+                    self.advance_next_line()?;
+                }
+                let width = self.width.unwrap();
+                if self.x != 0 && self.x != width {
+                    return Err(ParseError::GridIncompleteRow);
+                }
+                debug_assert!(self.data.len() as $index % width == 0);
+                let height = (self.data.len() / width as usize) as $index;
+                Ok(Self::Output {
+                    size: Vec2::new(width, height),
+                    data: self.data,
+                })
+            }
         }
-        internal(size.into(), initializer)
+    };
+}
+
+impl_continuous_grid!(VecGrid, VecGridBuilder, usize, Vec<T>, T, [<T>]);
+
+impl<T> VecGrid<T> {
+    fn new_impl(size: Vec2<usize>, mut initializer: impl FnMut(Vec2<usize>) -> T) -> Self {
+        assert!(size.x > 0);
+        assert!(size.y > 0);
+        let capacity = size.x.checked_mul(size.y).expect("overflow");
+        let mut data = Vec::with_capacity(capacity);
+        for y in 0..size.y {
+            for x in 0..size.x {
+                data.push(initializer(Vec2::new(x, y)));
+            }
+        }
+        VecGrid { size, data }
     }
 
-    pub fn size(&self) -> Vec2 {
-        self.size
-    }
-
-    pub fn width(&self) -> usize {
-        self.size.x
-    }
-
-    pub fn height(&self) -> usize {
-        self.size.y
+    pub fn new(size: impl Into<Vec2<usize>>, initializer: impl FnMut(Vec2<usize>) -> T) -> Self {
+        Self::new_impl(size.into(), initializer)
     }
 
     #[inline]
-    pub fn get<V: Into<Vec2>>(&self, index: V) -> Option<&T> {
-        let index = index.into();
+    fn get_impl(&self, index: Vec2<usize>) -> Option<&T> {
+        let index = index;
         if index.x < self.size.x && index.y < self.size.y {
             unsafe { Some(self.get_unchecked(index)) }
         } else {
@@ -78,8 +144,13 @@ impl<T> VecGrid<T> {
     }
 
     #[inline]
-    pub fn get_mut<V: Into<Vec2>>(&mut self, index: V) -> Option<&mut T> {
-        let index = index.into();
+    pub fn get<V: Into<Vec2<usize>>>(&self, index: V) -> Option<&T> {
+        self.get_impl(index.into())
+    }
+
+    #[inline]
+    fn get_mut_impl(&mut self, index: Vec2<usize>) -> Option<&mut T> {
+        let index = index;
         if index.x < self.size.x && index.y < self.size.y {
             unsafe { Some(self.get_unchecked_mut(index)) }
         } else {
@@ -87,17 +158,22 @@ impl<T> VecGrid<T> {
         }
     }
 
+    #[inline]
+    pub fn get_mut<V: Into<Vec2<usize>>>(&mut self, index: V) -> Option<&mut T> {
+        self.get_mut_impl(index.into())
+    }
+
     /// # Safety
     /// Calling this method with an out-of-bounds index is undefined behavior even if the resulting reference is not used.
     #[inline]
-    pub unsafe fn get_unchecked(&self, index: Vec2) -> &T {
+    pub unsafe fn get_unchecked(&self, index: Vec2<usize>) -> &T {
         unsafe { self.data.get_unchecked(index.y * self.size.x + index.x) }
     }
 
     /// # Safety
     /// Calling this method with an out-of-bounds index is undefined behavior even if the resulting reference is not used.
     #[inline]
-    pub unsafe fn get_unchecked_mut(&mut self, index: Vec2) -> &mut T {
+    pub unsafe fn get_unchecked_mut(&mut self, index: Vec2<usize>) -> &mut T {
         unsafe { self.data.get_unchecked_mut(index.y * self.size.x + index.x) }
     }
 
@@ -144,7 +220,7 @@ impl<T> VecGrid<T> {
     }
 }
 
-impl<T, V: Into<Vec2>> Index<V> for VecGrid<T> {
+impl<T, V: Into<Vec2<usize>>> Index<V> for VecGrid<T> {
     type Output = T;
 
     #[inline]
@@ -155,7 +231,8 @@ impl<T, V: Into<Vec2>> Index<V> for VecGrid<T> {
         unsafe { self.data.get_unchecked(index.y * self.size.x + index.x) }
     }
 }
-impl<T, V: Into<Vec2>> IndexMut<V> for VecGrid<T> {
+
+impl<T, V: Into<Vec2<usize>>> IndexMut<V> for VecGrid<T> {
     #[inline]
     fn index_mut(&mut self, index: V) -> &mut Self::Output {
         let index = index.into();
@@ -165,89 +242,35 @@ impl<T, V: Into<Vec2>> IndexMut<V> for VecGrid<T> {
     }
 }
 
-impl<T> GridBuilder<T> for VecGridBuilder<T> {
-    type Output = VecGrid<T>;
-    fn new() -> Self {
-        VecGridBuilder {
-            width: None,
-            x: 0,
-            data: Vec::new(),
-        }
-    }
-
-    fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-
-    fn push_cell(&mut self, cell: T) -> Result<(), ParseError> {
-        if let Some(width) = self.width {
-            if self.x >= width {
-                return Err(ParseError::GridCellAfterEndOfRowReached);
-            }
-        }
-        self.data.push(cell);
-        self.x += 1;
-        Ok(())
-    }
-
-    fn advance_next_line(&mut self) -> Result<(), ParseError> {
-        if let Some(width) = self.width {
-            if self.x != width {
-                return Err(ParseError::GridIncompleteRow);
-            }
-        } else {
-            self.width = Some(self.x);
-        }
-        self.x = 0;
-        Ok(())
-    }
-
-    fn finish(mut self) -> Result<Self::Output, ParseError> {
-        if self.width.is_none() {
-            self.advance_next_line()?;
-        }
-        let width = self.width.unwrap();
-        if self.x != 0 && self.x != width {
-            return Err(ParseError::GridIncompleteRow);
-        }
-        debug_assert!(self.data.len() % width == 0);
-        let height = self.data.len() / width;
-        Ok(VecGrid {
-            size: Vec2::new(width, height),
-            data: self.data,
-        })
-    }
-}
-
 impl<T> IntoIterator for VecGrid<T> {
     type IntoIter = VecGridIntoIter<T>;
-    type Item = (Vec2, T);
+    type Item = (Vec2<usize>, T);
 
     fn into_iter(self) -> Self::IntoIter {
         VecGridIntoIter {
             data: self.data.into_iter(),
             size: self.size,
-            next: Vec2::zero(),
+            next: Vec2::<usize>::zero(),
         }
     }
 }
 
 pub struct VecGridIntoIter<T> {
     data: <Vec<T> as IntoIterator>::IntoIter,
-    size: Vec2,
-    next: Vec2,
+    size: Vec2<usize>,
+    next: Vec2<usize>,
 }
 
 pub struct VecGridIter<'g, T> {
     data: Iter<'g, T>,
-    size: Vec2,
-    next: Vec2,
+    size: Vec2<usize>,
+    next: Vec2<usize>,
 }
 
 pub struct VecGridIterMut<'g, T> {
     data: IterMut<'g, T>,
-    size: Vec2,
-    next: Vec2,
+    size: Vec2<usize>,
+    next: Vec2<usize>,
 }
 
 macro impl_iter() {
@@ -267,16 +290,53 @@ macro impl_iter() {
 }
 
 impl<T> Iterator for VecGridIntoIter<T> {
-    type Item = (Vec2, T);
+    type Item = (Vec2<usize>, T);
     impl_iter!();
 }
 
 impl<'g, T> Iterator for VecGridIter<'g, T> {
-    type Item = (Vec2, &'g T);
+    type Item = (Vec2<usize>, &'g T);
     impl_iter!();
 }
 
 impl<'g, T> Iterator for VecGridIterMut<'g, T> {
-    type Item = (Vec2, &'g mut T);
+    type Item = (Vec2<usize>, &'g mut T);
     impl_iter!();
+}
+
+impl_continuous_grid!(BitGrid, BitGridBuilder, u32, BitVec<u64, LocalBits>, bool, []);
+impl BitGrid {
+    fn new_impl(size: Vec2<u32>, value: bool) -> Self {
+        assert!(size.x > 0);
+        assert!(size.y > 0);
+        let capacity = size.x as usize * size.y as usize;
+        let mut data = BitVec::with_capacity(capacity);
+        data.resize(capacity, value);
+        Self { data, size }
+    }
+
+    pub fn new(size: impl Into<Vec2<u32>>, value: bool) -> Self {
+        Self::new_impl(size.into(), value)
+    }
+
+    pub fn row(&self, y: u32) -> &BitSlice<u64, LocalBits> {
+        let start = y as usize * self.size.x as usize;
+        let end = start + self.size.x as usize;
+        &self.data[start..end]
+    }
+}
+
+impl Index<Vec2<u32>> for BitGrid {
+    type Output = bool;
+
+    fn index(&self, index: Vec2<u32>) -> &Self::Output {
+        assert!(index.x < self.size.x);
+        assert!(index.y < self.size.y);
+        let index = index.y as usize * self.size.x as usize + index.x as usize;
+        if unsafe { self.data.get_unchecked(index) } == true {
+            &true
+        } else {
+            &false
+        }
+    }
 }
