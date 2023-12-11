@@ -1,13 +1,13 @@
 framework::day!(04, parse => pt1, pt2);
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "criterion")))]
 #[derive(Debug, Clone)]
 struct Card {
     winning_numbers: [u8; 5],
     drawn_numbers: [u8; 8],
 }
 
-#[cfg(not(test))]
+#[cfg(any(not(test), feature = "criterion"))]
 #[derive(Debug, Clone)]
 struct Card {
     winning_numbers: [u8; 10],
