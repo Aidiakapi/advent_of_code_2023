@@ -1,6 +1,7 @@
 use crate::{parsers::ParseError, vecs::Vec2};
 use bitvec::prelude::*;
 use std::{
+    iter::TrustedLen,
     ops::{Index, IndexMut},
     slice::{Iter, IterMut},
 };
@@ -22,7 +23,7 @@ pub trait GridBuilder<T> {
 
 macro_rules! impl_continuous_grid {
     ($ty_name:ident, $builder_ty_name:ident, $index:ty, $storage:ty, $element:ty, [$($generics:tt)*]) => {
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $ty_name$($generics)* {
             size: Vec2<$index>,
             data: $storage,
@@ -135,7 +136,6 @@ impl<T> VecGrid<T> {
 
     #[inline]
     fn get_impl(&self, index: Vec2<usize>) -> Option<&T> {
-        let index = index;
         if index.x < self.size.x && index.y < self.size.y {
             unsafe { Some(self.get_unchecked(index)) }
         } else {
@@ -150,7 +150,6 @@ impl<T> VecGrid<T> {
 
     #[inline]
     fn get_mut_impl(&mut self, index: Vec2<usize>) -> Option<&mut T> {
-        let index = index;
         if index.x < self.size.x && index.y < self.size.y {
             unsafe { Some(self.get_unchecked_mut(index)) }
         } else {
@@ -255,6 +254,24 @@ impl<T> IntoIterator for VecGrid<T> {
     }
 }
 
+impl<'a, T> IntoIterator for &'a VecGrid<T> {
+    type IntoIter = VecGridIter<'a, T>;
+    type Item = (Vec2<usize>, &'a T);
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut VecGrid<T> {
+    type IntoIter = VecGridIterMut<'a, T>;
+    type Item = (Vec2<usize>, &'a mut T);
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
 pub struct VecGridIntoIter<T> {
     data: <Vec<T> as IntoIterator>::IntoIter,
     size: Vec2<usize>,
@@ -323,6 +340,40 @@ impl BitGrid {
         let start = y as usize * self.size.x as usize;
         let end = start + self.size.x as usize;
         &self.data[start..end]
+    }
+
+    pub fn row_mut(&mut self, y: u32) -> &mut BitSlice<u64, LocalBits> {
+        let start = y as usize * self.size.x as usize;
+        let end = start + self.size.x as usize;
+        &mut self.data[start..end]
+    }
+
+    pub fn rows(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = &BitSlice<u64, LocalBits>> + ExactSizeIterator + TrustedLen + '_
+    {
+        (0..self.size.y).map(move |y| self.row(y))
+    }
+
+    pub fn set(&mut self, position: Vec2<u32>, value: bool) {
+        self.data.set(
+            position.y as usize * self.size.x as usize + position.x as usize,
+            value,
+        )
+    }
+
+    pub fn fill(&mut self, value: bool) {
+        self.data.fill(value);
+    }
+
+    pub fn transpose(&self) -> BitGrid {
+        let mut res = BitGrid::new_impl(self.size.transpose(), false);
+        for idx in self.data.iter_ones() {
+            let y = idx / self.size.x as usize;
+            let x = idx - y * self.size.x as usize;
+            res.set(Vec2::new(y as u32, x as u32), true);
+        }
+        res
     }
 }
 

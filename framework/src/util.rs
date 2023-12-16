@@ -35,6 +35,19 @@ pub fn init_array<T, E, const N: usize>(
 }
 
 pub trait SliceExt<T> {
+    fn trim_start(&self, element: &T) -> &Self
+    where
+        T: Eq;
+    fn trim_end(&self, element: &T) -> &Self
+    where
+        T: Eq;
+    fn trim(&self, element: &T) -> &Self
+    where
+        T: Eq,
+    {
+        self.trim_start(element).trim_end(element)
+    }
+
     fn get_two_mut(&mut self, a: usize, b: usize) -> Option<(&mut T, &mut T)>;
     fn windows_mut<const N: usize>(&mut self) -> WindowsMut<'_, T, N>;
 }
@@ -64,6 +77,38 @@ impl<T> SliceExt<T> for [T] {
             len: self.len(),
             _marker: PhantomData,
         }
+    }
+
+    fn trim_start(&self, element: &T) -> &Self
+    where
+        T: Eq,
+    {
+        let mut res = self;
+        while !res.is_empty() {
+            unsafe {
+                if res.get_unchecked(0) != element {
+                    break;
+                }
+                (_, res) = res.split_at_unchecked(1);
+            }
+        }
+        res
+    }
+
+    fn trim_end(&self, element: &T) -> &Self
+    where
+        T: Eq,
+    {
+        let mut res = self;
+        while !res.is_empty() {
+            unsafe {
+                if res.get_unchecked(res.len() - 1) != element {
+                    break;
+                }
+                (res, _) = res.split_at_unchecked(res.len() - 1);
+            }
+        }
+        res
     }
 }
 

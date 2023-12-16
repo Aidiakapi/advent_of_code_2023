@@ -11,6 +11,7 @@
 #![feature(slice_split_at_unchecked)]
 #![feature(stmt_expr_attributes)]
 #![feature(trait_alias)]
+#![feature(trusted_len)]
 
 pub mod astr;
 pub mod cbuffer;
