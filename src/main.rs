@@ -8,6 +8,7 @@
 #![feature(get_many_mut)]
 #![feature(hash_raw_entry)]
 #![feature(iter_from_coroutine)]
+#![feature(iter_repeat_n)]
 #![feature(let_chains)]
 #![feature(map_try_insert)]
 #![feature(never_type)]
@@ -36,6 +37,7 @@ framework::main!(
     day09,
     day10,
     day11,
+    day12,
     day13,
     day14,
     day15,
