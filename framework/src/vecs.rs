@@ -1,5 +1,6 @@
-use num::{Integer, Signed, ToPrimitive};
+use num::{Integer, Signed, ToPrimitive, Zero};
 use std::fmt;
+use std::iter::Sum;
 
 macro_rules! substitute {
     ($name:ident, $($token:tt)+) => {
@@ -8,11 +9,16 @@ macro_rules! substitute {
 }
 
 macro_rules! impl_cast_op {
-    ($name:ident { $($component:ident),+ }, [($t:ident, $f:ident), $($rest:tt)*]) => {
+    ($name:ident { $($component:ident),+ }, [($t:ident, $f:ident, $tf:ident), $($rest:tt)*]) => {
         pub fn $f(self) -> $name<$t> {
             $name {
                 $($component: self.$component.$f().unwrap(),)+
             }
+        }
+        pub fn $tf(self) -> Option<$name<$t>> {
+            Some($name {
+                $($component: self.$component.$f()?,)+
+            })
         }
         impl_cast_op!($name { $($component),+ }, [$($rest)*]);
     };
@@ -169,6 +175,14 @@ macro_rules! impl_vec {
         impl_unary_op!(Neg, neg);
         impl_unary_op!(Not, not);
 
+        impl<T: Zero + std::ops::Add> Sum for $name<T> {
+            fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+                iter.fold(Self {
+                    $($component: T::zero(),)+
+                }, std::ops::Add::add)
+            }
+        }
+
         impl<T: fmt::Display> fmt::Display for $name<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, $str_fmt, $(self.$component),+)
@@ -177,20 +191,20 @@ macro_rules! impl_vec {
 
         impl<T: ToPrimitive> $name<T> {
             impl_cast_op!($name { $($component),+ }, [
-                (u8, to_u8),
-                (u16, to_u16),
-                (u32, to_u32),
-                (u64, to_u64),
-                (u128, to_u128),
-                (usize, to_usize),
-                (i8, to_i8),
-                (i16, to_i16),
-                (i32, to_i32),
-                (i64, to_i64),
-                (i128, to_i128),
-                (isize, to_isize),
-                (f32, to_f32),
-                (f64, to_f64),
+                (u8, to_u8, try_to_u8),
+                (u16, to_u16, try_to_u16),
+                (u32, to_u32, try_to_u32),
+                (u64, to_u64, try_to_u64),
+                (u128, to_u128, try_to_u128),
+                (usize, to_usize, try_to_usize),
+                (i8, to_i8, try_to_i8),
+                (i16, to_i16, try_to_i16),
+                (i32, to_i32, try_to_i32),
+                (i64, to_i64, try_to_i64),
+                (i128, to_i128, try_to_i128),
+                (isize, to_isize, try_to_isize),
+                (f32, to_f32, try_to_f32),
+                (f64, to_f64, try_to_f64),
             ]);
         }
     };
