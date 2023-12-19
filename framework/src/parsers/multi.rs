@@ -99,6 +99,23 @@ where
     TakeWhile(ctx, f)
 }
 
+pub struct TakeN<const N: usize>;
+impl<'s, const N: usize> Parser<'s> for TakeN<N> {
+    type Output = &'s [u8; N];
+
+    fn parse(&self, input: &'s [u8]) -> ParseResult<'s, Self::Output> {
+        if input.len() < N {
+            Err((ParseError::EmptyInput, input))
+        } else {
+            Ok(input.split_array_ref())
+        }
+    }
+}
+
+pub fn take_n<const N: usize>() -> TakeN<N> {
+    TakeN
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct SepBy<P, S, C> {
     parser: P,
