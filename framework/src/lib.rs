@@ -9,6 +9,7 @@
 #![feature(negative_impls)]
 #![feature(non_null_convenience)]
 #![feature(slice_split_at_unchecked)]
+#![feature(split_array)]
 #![feature(stmt_expr_attributes)]
 #![feature(trait_alias)]
 #![feature(trusted_len)]

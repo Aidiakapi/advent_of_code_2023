@@ -355,7 +355,29 @@ impl BitGrid {
         (0..self.size.y).map(move |y| self.row(y))
     }
 
+    pub fn get_mut(
+        &mut self,
+        position: Vec2<u32>,
+    ) -> Option<BitRef<bitvec::ptr::Mut, u64, LocalBits>> {
+        if position.x < self.size.x && position.y < self.size.y {
+            Some(unsafe { self.get_unchecked_mut(position) })
+        } else {
+            None
+        }
+    }
+
+    pub unsafe fn get_unchecked_mut(
+        &mut self,
+        position: Vec2<u32>,
+    ) -> BitRef<bitvec::ptr::Mut, u64, LocalBits> {
+        unsafe {
+            self.data
+                .get_unchecked_mut(position.y as usize * self.size.x as usize + position.x as usize)
+        }
+    }
+
     pub fn set(&mut self, position: Vec2<u32>, value: bool) {
+        assert!(position.x < self.size.x && position.y < self.size.y);
         self.data.set(
             position.y as usize * self.size.x as usize + position.x as usize,
             value,
@@ -374,6 +396,27 @@ impl BitGrid {
             res.set(Vec2::new(y as u32, x as u32), true);
         }
         res
+    }
+
+    pub fn count_ones(&self) -> usize {
+        self.data.count_ones()
+    }
+    pub fn count_zeros(&self) -> usize {
+        self.data.count_zeros()
+    }
+
+    pub fn to_string(&self) -> String {
+        let size = self.size.to_usize();
+        let mut s = String::with_capacity(size.x * size.y + size.y - 1);
+        for y in 0..size.y {
+            if y != 0 {
+                s.push('\n');
+            }
+            for x in 0..size.x {
+                s.push(if self.data[y * size.x + x] { '#' } else { '.' });
+            }
+        }
+        s
     }
 }
 

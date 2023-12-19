@@ -47,9 +47,9 @@ impl Offset {
     pub const X_NEG: Offset = Offset { value: 0b0100 };
     pub const Y_NEG: Offset = Offset { value: 0b1000 };
     pub const X_POS_Y_POS: Offset = Offset { value: 0b0011 };
-    pub const X_POS_Y_NEG: Offset = Offset { value: 0b1001 };
     pub const X_NEG_Y_POS: Offset = Offset { value: 0b0110 };
     pub const X_NEG_Y_NEG: Offset = Offset { value: 0b1100 };
+    pub const X_POS_Y_NEG: Offset = Offset { value: 0b1001 };
     pub const ORTHOGONAL: [Offset; 4] =
         [Offset::X_POS, Offset::X_NEG, Offset::Y_POS, Offset::Y_NEG];
     pub const DIAGONAL: [Offset; 4] = [
@@ -91,11 +91,41 @@ impl Offset {
         }
     }
 
+    pub const fn rot_45(self) -> Offset {
+        Offset {
+            value: match self.value {
+                0b0000 => 0b0000,
+                0b0001 => 0b0011,
+                0b0010 => 0b0110,
+                0b0100 => 0b1100,
+                0b1000 => 0b1001,
+                0b0011 => 0b0010,
+                0b0110 => 0b0100,
+                0b1100 => 0b1000,
+                0b1001 => 0b0001,
+                _ => unreachable!(),
+            },
+        }
+    }
+
     pub const fn has_x(self) -> bool {
         (self.value & 0b0101) != 0
     }
     pub const fn has_y(self) -> bool {
         (self.value & 0b1010) != 0
+    }
+
+    pub const fn has_x_pos(self) -> bool {
+        (self.value & Offset::X_POS.value) != 0
+    }
+    pub const fn has_x_neg(self) -> bool {
+        (self.value & Offset::X_NEG.value) != 0
+    }
+    pub const fn has_y_pos(self) -> bool {
+        (self.value & Offset::Y_POS.value) != 0
+    }
+    pub const fn has_y_neg(self) -> bool {
+        (self.value & Offset::Y_NEG.value) != 0
     }
 
     pub const fn transpose(self) -> Offset {
@@ -177,7 +207,9 @@ impl Offset {
 pub trait CompatibleNumber = Clone + CheckedAdd + CheckedSub + One;
 
 pub trait Neighbor: Sized {
+    type Distance;
     fn neighbor(self, offset: Offset) -> Option<Self>;
+    fn offset(self, offset: Offset, distance: Self::Distance) -> Option<Self>;
 }
 
 pub trait Neighbors: Neighbor + Clone {
@@ -245,6 +277,7 @@ impl<T: Neighbor + Clone> Iterator for NeighborsAlongIter<T> {
 }
 
 impl<T: CompatibleNumber> Neighbor for Vec2<T> {
+    type Distance = T;
     fn neighbor(self, offset: Offset) -> Option<Self> {
         let one = T::one();
         let x = match offset.value & 0b0101 {
@@ -255,6 +288,20 @@ impl<T: CompatibleNumber> Neighbor for Vec2<T> {
         let y = match offset.value & 0b1010 {
             0b0010 => self.y.checked_add(&one)?,
             0b1000 => self.y.checked_sub(&one)?,
+            _ => self.y,
+        };
+        Some(Vec2 { x, y })
+    }
+
+    fn offset(self, offset: Offset, distance: T) -> Option<Self> {
+        let x = match offset.value & 0b0101 {
+            0b0001 => self.x.checked_add(&distance)?,
+            0b0100 => self.x.checked_sub(&distance)?,
+            _ => self.x,
+        };
+        let y = match offset.value & 0b1010 {
+            0b0010 => self.y.checked_add(&distance)?,
+            0b1000 => self.y.checked_sub(&distance)?,
             _ => self.y,
         };
         Some(Vec2 { x, y })
