@@ -7,7 +7,7 @@ pub mod numbers;
 mod util;
 
 pub use combi::ParserCombiExt;
-pub use common::{any, digit, pattern, token};
+pub use common::{any, digit, constant, pattern, token};
 pub use error::{ParseError, ParseResult};
 pub use grid::grid;
 pub use multi::{take_n, take_while, ParserMultiExt};

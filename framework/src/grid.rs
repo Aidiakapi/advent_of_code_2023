@@ -26,7 +26,7 @@ macro_rules! impl_continuous_grid {
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $ty_name$($generics)* {
             size: Vec2<$index>,
-            data: $storage,
+            pub data: $storage,
         }
 
         #[derive(Debug, Clone)]
@@ -162,6 +162,24 @@ impl<T> VecGrid<T> {
         self.get_mut_impl(index.into())
     }
 
+    pub fn row(&self, y: usize) -> Option<&[T]> {
+        if y < self.size.y {
+            let base = y * self.size.x;
+            unsafe { Some(self.data.get_unchecked(base..base + self.size.y)) }
+        } else {
+            None
+        }
+    }
+
+    pub fn row_mut(&mut self, y: usize) -> Option<&mut [T]> {
+        if y < self.size.y {
+            let base = y * self.size.x;
+            unsafe { Some(self.data.get_unchecked_mut(base..base + self.size.y)) }
+        } else {
+            None
+        }
+    }
+
     /// # Safety
     /// Calling this method with an out-of-bounds index is undefined behavior even if the resulting reference is not used.
     #[inline]
@@ -204,7 +222,7 @@ impl<T> VecGrid<T> {
         }
     }
 
-    pub fn stringify(&self, mut to_char: impl FnMut(&T) -> char) -> String {
+    pub fn stringify(&self, mut to_char: impl FnMut(Vec2<usize>, &T) -> char) -> String {
         let mut str = String::with_capacity((self.size.x + 1) * self.size.y - 1);
         for y in 0..self.size.y {
             if y != 0 {
@@ -212,7 +230,7 @@ impl<T> VecGrid<T> {
             }
             for x in 0..self.size.x {
                 let c = unsafe { self.get_unchecked((x, y).into()) };
-                str.push(to_char(c));
+                str.push(to_char((x, y).into(), c));
             }
         }
         str
@@ -332,6 +350,19 @@ impl BitGrid {
         Self { data, size }
     }
 
+    pub fn index_to_position(&self, index: usize) -> Vec2<u32> {
+        assert!(index < self.data.len());
+        let y = index / self.size.x as usize;
+        let x = index % self.size.x as usize;
+        Vec2::new(x, y).to_u32()
+    }
+
+    pub fn position_to_index(&self, position: Vec2<u32>) -> usize {
+        assert!(position.x < self.size.x);
+        assert!(position.y < self.size.y);
+        position.y as usize * self.size.x as usize + position.x as usize
+    }
+
     pub fn new(size: impl Into<Vec2<u32>>, value: bool) -> Self {
         Self::new_impl(size.into(), value)
     }
@@ -376,6 +407,18 @@ impl BitGrid {
         }
     }
 
+    pub fn get(&self, position: Vec2<u32>) -> Option<bool> {
+        if position.x < self.size.x && position.y < self.size.y {
+            Some(unsafe {
+                *self
+                    .data
+                    .get_unchecked(position.y as usize * self.size.x as usize + position.x as usize)
+            })
+        } else {
+            None
+        }
+    }
+
     pub fn set(&mut self, position: Vec2<u32>, value: bool) {
         assert!(position.x < self.size.x && position.y < self.size.y);
         self.data.set(
@@ -396,13 +439,6 @@ impl BitGrid {
             res.set(Vec2::new(y as u32, x as u32), true);
         }
         res
-    }
-
-    pub fn count_ones(&self) -> usize {
-        self.data.count_ones()
-    }
-    pub fn count_zeros(&self) -> usize {
-        self.data.count_zeros()
     }
 
     pub fn to_string(&self) -> String {

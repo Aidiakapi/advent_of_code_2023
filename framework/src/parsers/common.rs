@@ -129,6 +129,20 @@ pub fn any() -> Any {
     Any
 }
 
+pub struct Constant<V: Clone>(V);
+/// Parser that always succeeds, consumes no input, and returns a constant value
+pub fn constant<V: Clone>(value: V) -> Constant<V> {
+    Constant(value)
+}
+
+impl<'s, V: Clone + 's> Parser<'s> for Constant<V> {
+    type Output = V;
+
+    fn parse(&self, input: &'s [u8]) -> ParseResult<'s, Self::Output> {
+        Ok((self.0.clone(), input))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

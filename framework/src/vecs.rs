@@ -102,6 +102,27 @@ macro_rules! impl_vec {
                     $($component: self.$component.max(max.$component),)+
                 }
             }
+
+            pub fn minmax_comp(self, other: Self) -> (Self, Self) {
+                use $crate::util::OrdExt;
+                $(
+                    let $component = self.$component.minmax(other.$component);
+                )+
+                (
+                    Self {
+                        $($component: $component.0,)+
+                    },
+                    Self {
+                        $($component: $component.1,)+
+                    }
+                )
+            }
+
+            pub fn eq_comp(self, other: Self) -> $name<bool> {
+                $name {
+                    $($component: self.$component == other.$component,)+
+                }
+            }
         }
 
         auto trait $neg_trait {}
@@ -233,3 +254,30 @@ macro_rules! impl_transpose {
 impl_transpose!(Vec2, x: y, y: x);
 impl_transpose!(Vec3, x: z, y: y, z: x);
 impl_transpose!(Vec4, x: w, y: z, z: y, w: x);
+
+macro_rules! impl_swizzle {
+    ($(@impl)? $into:ident [$from:ident  $(,$rest:ident)*], $($fn:ident [$($comp:ident),+]),+$(,)?) => {
+        impl<T> $from<T> {
+            $(pub fn $fn(self) -> $into<T> {
+                $into::from((
+                    $(self.$comp,)+
+                ))
+            })+
+        }
+        impl_swizzle!(@impl $into [$($rest),*], $($fn [$($comp),+]),+);
+    };
+    (@impl $into:ident [], $($fn:ident [$($comp:ident),+]),+$(,)?) => {
+    };
+}
+
+impl_swizzle!(Vec2 [Vec3, Vec4],
+    xy [x, y], xz [x, z],
+    yz [y, x], yx [y, z],
+    zx [z, x], zy [z, y],
+);
+impl_swizzle!(Vec3 [Vec4],
+    xyz [x, y, z], xyw [x, y, w], xzy [x, z, y], xzw [x, z, w], xwy [x, w, y], xwz [x, w, z],
+    yxz [y, x, z], yxw [y, x, w], yzx [y, z, x], yzw [y, z, w], ywx [y, w, x], ywz [y, w, z],
+    zxy [z, x, y], zxw [z, x, w], zyx [z, y, x], zyw [z, y, w], zwx [z, w, x], zwy [z, w, y],
+    wxy [w, x, y], wxz [w, x, z], wyx [w, y, x], wyz [w, y, z], wzx [w, z, x], wzy [w, z, y],
+);
