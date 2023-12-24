@@ -3,6 +3,7 @@ pub use crate::cbuffer::{CBuffer, CBufferMutator};
 pub use crate::error::Error;
 pub use crate::graph;
 pub use crate::grid::{BitGrid, VecGrid};
+pub use crate::if_test;
 pub use crate::iter::{
     Distinct, DistinctResult, DoubleEndedLendingIterator, IteratorExt, LendingIterator,
     SizedIteratorExt,

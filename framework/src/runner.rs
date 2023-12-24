@@ -100,6 +100,17 @@ $crate::paste! {
 }
 
 #[macro_export]
+macro_rules! if_test {
+    ($if:expr, $else:expr) => {
+        if cfg!(all(test, not(feature = "criterion"))) {
+            $if
+        } else {
+            $else
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! tests {
     ($($x:tt)*) => {
         #[cfg(test)]

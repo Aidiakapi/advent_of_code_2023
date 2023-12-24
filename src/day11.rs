@@ -4,10 +4,7 @@ framework::day!(11, parse => pt1, pt2);
 
 type Vec2 = framework::vecs::Vec2<u32>;
 
-#[cfg(all(test, not(criterion)))]
-const EXPANSION_FACTOR: u64 = 100;
-#[cfg(any(not(test), criterion))]
-const EXPANSION_FACTOR: u64 = 1_000_000;
+const EXPANSION_FACTOR: u64 = if_test!(100, 1_000_000);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Galaxy {

@@ -1,17 +1,9 @@
 framework::day!(04, parse => pt1, pt2);
 
-#[cfg(all(test, not(feature = "criterion")))]
 #[derive(Debug, Clone)]
 struct Card {
-    winning_numbers: [u8; 5],
-    drawn_numbers: [u8; 8],
-}
-
-#[cfg(any(not(test), feature = "criterion"))]
-#[derive(Debug, Clone)]
-struct Card {
-    winning_numbers: [u8; 10],
-    drawn_numbers: [u8; 25],
+    winning_numbers: [u8; if_test!(5, 10)],
+    drawn_numbers: [u8; if_test!(8, 25)],
 }
 
 fn pt1(input: &[Card]) -> u32 {
