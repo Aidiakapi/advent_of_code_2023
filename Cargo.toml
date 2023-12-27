@@ -10,6 +10,8 @@ bitvec = "1.0"
 framework = { path = "./framework", package = "advent_of_code_framework" }
 itertools = "0.12"
 num = "0.4"
+rand = "0.8"
+rand_pcg = "0.3"
 rayon = "1.6"
 
 [dev-dependencies]

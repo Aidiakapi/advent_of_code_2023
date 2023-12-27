@@ -1,6 +1,7 @@
 use crate::{parsers::ParseError, vecs::Vec2};
 use bitvec::prelude::*;
 use std::{
+    fmt::{self, Display, Formatter},
     iter::TrustedLen,
     ops::{Index, IndexMut},
     slice::{Iter, IterMut},
@@ -397,6 +398,8 @@ impl BitGrid {
         }
     }
 
+    /// # Safety
+    /// Undefined if position.x >= size.x or position.y >= size.y.
     pub unsafe fn get_unchecked_mut(
         &mut self,
         position: Vec2<u32>,
@@ -440,8 +443,10 @@ impl BitGrid {
         }
         res
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl Display for BitGrid {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let size = self.size.to_usize();
         let mut s = String::with_capacity(size.x * size.y + size.y - 1);
         for y in 0..size.y {
@@ -452,7 +457,7 @@ impl BitGrid {
                 s.push(if self.data[y * size.x + x] { '#' } else { '.' });
             }
         }
-        s
+        f.write_str(&s)
     }
 }
 

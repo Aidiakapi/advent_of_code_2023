@@ -108,10 +108,10 @@ fn parse(input: &[u8]) -> Result<Input> {
         *n += 1;
         *n <= 3 && c.is_ascii_alphabetic()
     })
-    .map(|n| match n {
-        &[a] => [a, 0, 0],
-        &[a, b] => [a, b, 0],
-        &[a, b, c] => [a, b, c],
+    .map(|n| match *n {
+        [a] => [a, 0, 0],
+        [a, b] => [a, b, 0],
+        [a, b, c] => [a, b, c],
         _ => unreachable!(),
     })
     .map(Ident);

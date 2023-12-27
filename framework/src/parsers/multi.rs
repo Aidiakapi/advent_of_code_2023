@@ -99,6 +99,7 @@ where
     TakeWhile(ctx, f)
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct TakeN<const N: usize>;
 impl<'s, const N: usize> Parser<'s> for TakeN<N> {
     type Output = &'s [u8; N];
