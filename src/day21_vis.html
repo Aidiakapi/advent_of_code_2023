@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 21 visualization</title>
+</head>
+
+<body>
+    <label for="input-width">Width: <input id="input-width" type="number" min="3" step="2" value="5" /></label>
+    <label for="input-steps">Steps: <input id="input-steps" type="number" min="0" step="1" value="2" /></label>
+    <label for="input-quartile">Quartile: <input id="input-quartile" type="checkbox" /></label>
+    <p id="output-text"></p>
+    <svg id="output-svg" style="display: block">
+    </svg>
+
+    <script>
+        'use strict'
+window.addEventListener('DOMContentLoaded', () => {
+    const inputWidth = document.querySelector('#input-width')
+    const inputSteps = document.querySelector('#input-steps')
+    const inputQuartile = document.querySelector('#input-quartile')
+    const outputText = document.querySelector('#output-text')
+    /** @type { SVGElement } */
+    const outputSvg = document.querySelector('#output-svg')
+
+    for (const elem of [inputWidth, inputSteps, inputQuartile]) {
+        elem.addEventListener('change', () => update())
+    }
+
+    update()
+
+    function update() {
+        const width = parseInt(inputWidth.value, 10)
+        const steps = parseInt(inputSteps.value, 10)
+        if (width < 1 || width % 2 !== 1 || steps < 0) {
+            console.error('invalid input')
+            return
+        }
+        console.log(width, steps)
+
+        // Grid checkerboard striping (parity)
+        let path = ''
+        for (let x = -steps - 1; x <= steps + 2; x += 1) {
+            for (let y = -steps - 1; y <= steps + 2; y += 1) {
+                if (((x + y + 1) % 2 + 2) % 2 === 0) {
+                    path += `M ${x - 0.5} ${y - 0.5} H ${x + 0.5} V ${y + 0.5} H ${x - 0.5} V ${y - 0.5}`
+                }
+            }
+        }
+        const backgroundGridChecker = createShape('path', null, null, '#f0f0f0')
+        backgroundGridChecker.setAttribute('d', path)
+
+        // Light grey background grid-lines
+        path = ''
+        for (let i = -steps - 1; i <= steps + 2; i += 1) {
+            path += `M ${-steps - 1.5} ${i - 0.5} H ${steps + 1.5} M ${i - 0.5} ${-steps - 1.5} V ${steps + 1.5}`
+        }
+
+        const backgroundGridLines = createShape('path', '#a0a0a0', '0.02')
+        backgroundGridLines.setAttribute('d', path)
+
+        // Outline of cells that can be reached
+        path = `M -0.5 ${-steps - 0.5}`
+        for (let quad = 0; quad < 4; quad += 1) {
+            for (let i = 0; i <= steps; i += 1) {
+                let x1 = i + 0.5
+                let y1 = -steps - 0.5 + i
+                let x2 = x1
+                let y2 = -steps + 0.5 + i
+                for (let rot = 0; rot < quad; ++rot) {
+                    let temp = x1
+                    x1 = -y1
+                    y1 = temp
+                    temp = x2
+                    x2 = -y2
+                    y2 = temp
+                }
+                path += ` L ${x1} ${y1}`
+                if (i !== steps) {
+                    path += ` L ${x2} ${y2}`
+                }
+            }
+        }
+
+        const outlinePath = createShape('path', '#404040', '0.04')
+        outlinePath.setAttribute('d', path)
+
+        // Thick grid lines to segment repetitions of the map
+        const halfWidth = (width - 1) / 2
+        path = ''
+        const sx = Math.floor((steps - halfWidth) / width) * width + halfWidth
+        for (let x = -sx - 0.5; x <= sx + 0.5; x += width) {
+            const height = steps - Math.abs(x)
+            path += ` M ${x} ${-height} V ${height}`
+            path += ` M ${-height} ${x} H ${height}`
+        }
+
+        const repetitionLines = createShape('path', '#404040', '0.04')
+        repetitionLines.setAttribute('d', path)
+
+        const centerDot = createShape('circle', null, null, '#ff8080')
+        centerDot.setAttribute('cx', 0)
+        centerDot.setAttribute('cy', 0)
+        centerDot.setAttribute('r', 0.25)
+
+        outputSvg.innerHTML = ''
+        if (inputQuartile.checked) {
+            outputSvg.setAttribute('viewBox', `0 0 ${steps + 1.54} ${steps + 1.54}`)
+        }
+        else {
+            outputSvg.setAttribute('viewBox', `${-steps - 1.54} ${-steps - 1.54} ${steps * 2 + 3.08} ${steps * 2 + 3.08}`)
+        }
+        outputSvg.appendChild(backgroundGridChecker)
+        outputSvg.appendChild(backgroundGridLines)
+        outputSvg.appendChild(outlinePath)
+        outputSvg.appendChild(repetitionLines)
+        outputSvg.appendChild(centerDot)
+
+        const fullyCoveredReach = Math.floor((steps + 1) / width)
+        // fullyCoveredReach == 4 == n
+        //    #       # #####
+        //   ###   => ### ###  + ####### (2n - 1)
+        //  #####     ##### #
+        // #######    w: (2n - 2)
+        //  #####     h: (n - 1)
+        //   ###      area: (2n - 2) * (n - 1) = 2n^2 - 4n + 2 = 2 * (n-1)^2
+        //    #       final: 2n^2-2n+1
+        const fullyCoveredArea = fullyCoveredReach === 0 ? 0
+            : 2 * fullyCoveredReach * fullyCoveredReach - 2 * fullyCoveredReach + 1
+
+        const orthogonalRemainingSteps = Math.min(steps, steps - 1 - halfWidth - (fullyCoveredReach - 1) * width)
+        const orthogonalOverflow = orthogonalRemainingSteps >= width ? orthogonalRemainingSteps - width : -1
+
+        // Every time reach increases, the maps that were previously an
+        // edge node, are now fully included, and the expansion beyond
+        // that becomes the new edge node.
+        // At reach 0, there are no edges.
+        // At reach 1, we get 1 edge on each main diagonal
+        // At reach 2, we get an additional edge off the main diagonal
+        //             on either side of the first.
+        // At reach 3, we get two more edges on the sides of the latter,
+        //             and they are similar to the one on the main.
+        // And so it continues. The first time we grow, we start with 1
+        // edge, every time after, we one on each side of it, meaning 2
+        // per quartile.
+        // Every other edge-tile is similar to the one before, so we can
+        // partition them in edges that are on the main diagonals, and
+        // those that are off of it.
+        //
+        // Finally, w.r.t. parity, the on the main diagonal share its
+        // even parity. The ones on the off-diagonal, being shifted over
+        // by width units, and width being odd, toggles the parity to
+        // be at odd parity.
+
+        const diagMainCount = fullyCoveredReach === 0 ? 0
+            : Math.floor((fullyCoveredReach - 1) / 2) * 2 + 1
+        const diagOffCount = fullyCoveredReach < 2 ? 0
+            : Math.floor((fullyCoveredReach - 2) / 2) * 2 + 2
+
+        // These steps can be negative, which just means that it can't reach the
+        // first or current edge. When it's zero, it means that it can step onto
+        // the associated corner, but then not move any further.
+        const stepsIntoMainDiag = (steps - width + 1) % (width * 2) - 2
+        const stepsIntoOffDiag = (steps - 2 * width + 1) % (width * 2) - 2
+
+        // Not really a useful number, but just fun
+        const totalMapsToConsider = fullyCoveredReach == 0
+            ? (steps > halfWidth ? 5 : 1)
+            : fullyCoveredArea + 4 + (orthogonalOverflow !== 0 ? 4 : 0) +
+                ((stepsIntoMainDiag >= 0 ? diagMainCount : 0) + (stepsIntoOffDiag >= 0 ? diagOffCount : 0)) * 4
+
+        outputText.innerText = `Fully covered: reach ${fullyCoveredReach} area: ${fullyCoveredArea}
+Orthogonally remaining steps: ${orthogonalRemainingSteps} (overflow: ${orthogonalOverflow})
+Main diagonal count (in quartile): ${diagMainCount}, steps into it: ${stepsIntoMainDiag}
+Off diagonal count (in quartile): ${diagOffCount}, steps into it: ${stepsIntoOffDiag}
+Total maps to consider: ${totalMapsToConsider}`
+    }
+
+    function createShape(elemName, strokeColor, strokeWidth, fillColor) {
+        const elem = document.createElementNS('http://www.w3.org/2000/svg', elemName)
+        if (strokeColor) {
+            elem.setAttribute('stroke', strokeColor)
+        }
+        if (strokeWidth) {
+            elem.setAttribute('stroke-width', strokeWidth)
+        }
+        elem.setAttribute('fill', fillColor || 'none')
+        return elem
+    }
+})
+    </script>
+</body>
+
+</html>
