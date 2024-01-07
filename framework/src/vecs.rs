@@ -85,6 +85,10 @@ macro_rules! impl_vec {
                 max
             }
 
+            pub fn dot(self, other: Self) -> T {
+                $(self.$component * other.$component + )+ <T as num::Zero>::zero()
+            }
+
             pub fn clamp(self, min: T, max: T) -> Self {
                 Self {
                     $($component: self.$component.clamp(min, max),)+
@@ -281,3 +285,14 @@ impl_swizzle!(Vec3 [Vec4],
     zxy [z, x, y], zxw [z, x, w], zyx [z, y, x], zyw [z, y, w], zwx [z, w, x], zwy [z, w, y],
     wxy [w, x, y], wxz [w, x, z], wyx [w, y, x], wyz [w, y, z], wzx [w, z, x], wzy [w, z, y],
 );
+
+impl<T: Clone + std::ops::Sub<T, Output = T> + std::ops::Mul<T, Output = T>> Vec3<T> {
+    #[rustfmt::skip]
+    pub fn cross(self, other: Self) -> Self {
+        Vec3::new(
+            self.y.clone() * other.z.clone() - self.z.clone() * other.y.clone(),
+            self.z         * other.x.clone() - self.x.clone() * other.z        ,
+            self.x         * other.y         - self.y         * other.x        ,
+        )
+    }
+}
