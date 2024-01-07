@@ -2,7 +2,7 @@ use bitvec::prelude::*;
 
 framework::day!(10, parse => pt1, pt2);
 
-type Vec2 = framework::vecs::Vec2<usize>;
+type Vec2 = framework::vecs::Vec2<u32>;
 type Grid = VecGrid<u8>;
 
 const EMPTY: u8 = 0;
@@ -64,14 +64,14 @@ fn pt2(grid: &Grid) -> Result<usize> {
     let mut mask = BitVec::<u64, LocalBits>::new();
     let w3 = grid.width() * 3;
     let h3 = grid.height() * 3;
-    mask.resize(w3 * h3, false);
+    mask.resize((w3 * h3) as usize, false);
 
-    let pos_to_idx = |x: usize, y: usize| -> usize { y * w3 + x };
+    let pos_to_idx = |x: u32, y: u32| -> usize { (y * w3 + x) as usize };
 
     for_each_path_pos(grid, |position, cell| {
         let p3 = position * 3;
         mask.set(pos_to_idx(p3.x + 1, p3.y + 1), true);
-        let mut set_if = |dir: u8, ox: usize, oy: usize| {
+        let mut set_if = |dir: u8, ox: u32, oy: u32| {
             if cell & dir == dir {
                 mask.set(pos_to_idx(p3.x + ox, p3.y + oy), true);
             }
@@ -99,7 +99,7 @@ fn pt2(grid: &Grid) -> Result<usize> {
             let base = y * w3 + 1;
             (base..base + w3).step_by(3)
         })
-        .filter(|&idx| !mask[idx])
+        .filter(|&idx| !mask[idx as usize])
         .count();
 
     Ok(count)

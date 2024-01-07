@@ -3,7 +3,6 @@ framework::day!(22, parse => pt1, pt2);
 
 type Vec2 = framework::vecs::Vec2<u32>;
 type Vec3 = framework::vecs::Vec3<u32>;
-type Vec2us = framework::vecs::Vec2<usize>;
 
 #[derive(Debug, Clone, Default)]
 struct Cell {
@@ -40,7 +39,7 @@ impl BrickStructure {
             return Err(Error::InvalidInput("expected bricks at zero"));
         }
 
-        let heightmap = VecGrid::new((max_xy + 1).to_usize(), |_| Cell::default());
+        let heightmap = VecGrid::new(max_xy + 1, |_| Cell::default());
 
         let support_set = BitVec::repeat(false, bricks.len());
         let mut support_structure = Vec::new();
@@ -93,9 +92,9 @@ impl BrickStructure {
     }
 }
 
-fn iter_each_xy(brick: (Vec3, Vec3)) -> impl Iterator<Item = Vec2us> {
+fn iter_each_xy(brick: (Vec3, Vec3)) -> impl Iterator<Item = Vec2> {
     let (min, max) = (brick.0.xy(), brick.1.xy() + 1);
-    (min.x..max.x).flat_map(move |x| (min.y..max.y).map(move |y| Vec2::new(x, y).to_usize()))
+    (min.x..max.x).flat_map(move |x| (min.y..max.y).map(move |y| Vec2::new(x, y)))
 }
 
 fn pt1(bricks: &[(Vec3, Vec3)]) -> Result<u32> {

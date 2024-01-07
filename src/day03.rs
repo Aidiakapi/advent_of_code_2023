@@ -1,9 +1,9 @@
 framework::day!(03, parse => pt1, pt2);
 
-type Vec2 = framework::vecs::Vec2<usize>;
+type Vec2 = framework::vecs::Vec2<u32>;
 type Grid = VecGrid<u8>;
 
-fn iter_ranges(grid: &Grid) -> impl Iterator<Item = (Vec2, usize)> + '_ {
+fn iter_ranges(grid: &Grid) -> impl Iterator<Item = (Vec2, u32)> + '_ {
     std::iter::from_coroutine(|| {
         for y in 0..grid.height() {
             let mut x = 0;
@@ -21,13 +21,13 @@ fn iter_ranges(grid: &Grid) -> impl Iterator<Item = (Vec2, usize)> + '_ {
     })
 }
 
-fn get_number_length(grid: &Grid, top_left: Vec2) -> usize {
+fn get_number_length(grid: &Grid, top_left: Vec2) -> u32 {
     1 + (top_left.x + 1..grid.width())
         .take_while(|&x| grid[(x, top_left.y)].is_ascii_digit())
-        .count()
+        .count() as u32
 }
 
-fn range_to_number(grid: &Grid, (pos, length): (Vec2, usize)) -> u32 {
+fn range_to_number(grid: &Grid, (pos, length): (Vec2, u32)) -> u32 {
     let mut n = 0;
     for x in pos.x..pos.x + length {
         let digit = grid[(x, pos.y)] - b'0';

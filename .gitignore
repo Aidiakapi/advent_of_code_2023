@@ -1,3 +1,4 @@
 /target
 session_key.txt
 .idea
+.z3-trace

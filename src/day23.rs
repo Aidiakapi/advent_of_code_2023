@@ -19,7 +19,7 @@ fn for_each_neighbor(grid: &Grid, pos: Vec2<u32>, mut callback: impl FnMut(Vec2<
     for offset in Offset::ORTHOGONAL {
         if let Some(neighbor) = pos
             .neighbor(offset)
-            .filter(|n| matches!(grid.get(n.to_usize()), Some(Cell::Empty | Cell::Slope(_))))
+            .filter(|n| matches!(grid.get(*n), Some(Cell::Empty | Cell::Slope(_))))
         {
             callback(neighbor, offset);
         }
@@ -54,7 +54,7 @@ fn build_graph(grid: &Grid) -> Vec<Node> {
             next: ArrayVec::new(),
         });
 
-        let exploration_directions = match grid[position.to_usize()] {
+        let exploration_directions = match grid[position] {
             Cell::Empty => 0,
             Cell::Wall => unreachable!(),
             Cell::Slope(slope) => 0b1111 ^ slope.raw(),
@@ -85,7 +85,7 @@ fn build_graph(grid: &Grid) -> Vec<Node> {
                     next = Some((next_pos, next_dir));
                 });
                 (pos, dir) = next.unwrap();
-                if let Cell::Slope(next_dir) = grid[pos.to_usize()] {
+                if let Cell::Slope(next_dir) = grid[pos] {
                     can_fwd &= dir == next_dir;
                     can_bwd &= dir != next_dir;
                 }

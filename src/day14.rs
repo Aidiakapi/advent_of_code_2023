@@ -11,7 +11,7 @@ enum Cell {
     Ball,
 }
 
-fn pt1(grid: &Grid) -> usize {
+fn pt1(grid: &Grid) -> u32 {
     let mut grid = grid.clone();
     for y in 0..grid.height() {
         for x in 0..grid.width() {
@@ -50,7 +50,7 @@ fn rotate_cw_with_temp(target: &mut BitGrid, temp: &mut BitGrid) {
 }
 
 fn pt2_core(grid: &Grid, mut should_stop: impl FnMut(&BitGrid) -> bool) {
-    let mut walls = BitGrid::new(Vec2::from(grid.width() as u32), false);
+    let mut walls = BitGrid::new(Vec2::from(grid.width()), false);
     let mut balls = walls.clone();
 
     for (pos, &cell) in grid {

@@ -215,7 +215,7 @@ fn parse(input: &[u8]) -> Result<Input> {
     let starting_indices = (grid.cells().iter()).positions(|&c| c == Cell::StartingPosition);
     let starting_index = (starting_indices.exactly_one().ok())
         .ok_or(ParseError::Custom("must have a single starting position"))?;
-    let starting_position = Vec2::new(starting_index % grid.width(), starting_index / grid.width());
+    let starting_position = grid.index_to_position(starting_index);
 
     let mut rocks = BitGrid::new(grid.size().to_u32(), false);
     (grid.into_iter().filter(|&(_, c)| c == Cell::Rock))

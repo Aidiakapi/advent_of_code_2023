@@ -39,7 +39,7 @@ fn pt2(grid: &Grid) -> usize {
 
 fn get_energized_tiles(
     grid: &Grid,
-    continuations: &mut Vec<(Vec2<usize>, Offset)>,
+    continuations: &mut Vec<(Vec2<u32>, Offset)>,
     visited: &mut VecGrid<u8>,
 ) -> usize {
     'outer: while let Some((mut pos, mut dir)) = continuations.pop() {

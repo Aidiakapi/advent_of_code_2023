@@ -32,7 +32,7 @@ fn pts(
         },
         |node, nodes| {
             let mut push = |node: Node| {
-                if let Some(&cost) = node.pos.try_to_usize().and_then(|pos| grid.get(pos)) {
+                if let Some(&cost) = node.pos.try_to_u32().and_then(|pos| grid.get(pos)) {
                     nodes.push((node, cost as u32));
                 }
             };
