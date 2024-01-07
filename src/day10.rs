@@ -1,5 +1,3 @@
-use bitvec::prelude::*;
-
 framework::day!(10, parse => pt1, pt2);
 
 type Vec2 = framework::vecs::Vec2<u32>;
@@ -61,19 +59,16 @@ fn pt1(grid: &Grid) -> Result<u32> {
 }
 
 fn pt2(grid: &Grid) -> Result<usize> {
-    let mut mask = BitVec::<u64, LocalBits>::new();
     let w3 = grid.width() * 3;
     let h3 = grid.height() * 3;
-    mask.resize((w3 * h3) as usize, false);
-
-    let pos_to_idx = |x: u32, y: u32| -> usize { (y * w3 + x) as usize };
+    let mut mask = BitGrid::new((w3, h3), false);
 
     for_each_path_pos(grid, |position, cell| {
         let p3 = position * 3;
-        mask.set(pos_to_idx(p3.x + 1, p3.y + 1), true);
+        mask.set((p3.x + 1, p3.y + 1), true);
         let mut set_if = |dir: u8, ox: u32, oy: u32| {
             if cell & dir == dir {
-                mask.set(pos_to_idx(p3.x + ox, p3.y + oy), true);
+                mask.set((p3.x + ox, p3.y + oy), true);
             }
         };
         set_if(LEFT, 0, 1);
@@ -85,10 +80,9 @@ fn pt2(grid: &Grid) -> Result<usize> {
     let mut stack = Vec::new();
     stack.push(Vec2::zero());
     while let Some(v) = stack.pop() {
-        mask.set(pos_to_idx(v.x, v.y), true);
+        mask.set((v.x, v.y), true);
         for neighbor in v.neighbors(&Offset::ORTHOGONAL) {
-            let idx = pos_to_idx(neighbor.x, neighbor.y);
-            if idx < mask.len() && !mask[idx] {
+            if matches!(mask.get(neighbor), Some(false)) {
                 stack.push(neighbor);
             }
         }
@@ -99,7 +93,7 @@ fn pt2(grid: &Grid) -> Result<usize> {
             let base = y * w3 + 1;
             (base..base + w3).step_by(3)
         })
-        .filter(|&idx| !mask[idx as usize])
+        .filter(|&idx| !mask.data[idx as usize])
         .count();
 
     Ok(count)

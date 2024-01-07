@@ -437,12 +437,13 @@ impl BitGrid {
         unsafe { *self.data.get_unchecked(index) }
     }
 
-    pub fn set(&mut self, position: Vec2<u32>, value: bool) {
-        assert!(position.x < self.size.x && position.y < self.size.y);
-        self.data.set(
-            position.y as usize * self.size.x as usize + position.x as usize,
-            value,
-        )
+    #[inline]
+    pub fn set(&mut self, position: impl Into<Vec2<u32>>, value: bool) {
+        fn set_impl(this: &mut BitGrid, position: Vec2<u32>, value: bool) {
+            let index = this.position_to_index(position);
+            this.data.set(index, value)
+        }
+        set_impl(self, position.into(), value);
     }
 
     pub fn fill(&mut self, value: bool) {
