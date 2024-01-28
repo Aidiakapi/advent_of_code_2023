@@ -1,7 +1,6 @@
 #![feature(array_windows)]
 #![feature(auto_traits)]
 #![feature(decl_macro)]
-#![feature(entry_insert)]
 #![feature(hash_raw_entry)]
 #![feature(let_chains)]
 #![feature(maybe_uninit_array_assume_init)]
@@ -9,8 +8,6 @@
 #![feature(negative_impls)]
 #![feature(non_null_convenience)]
 #![feature(slice_split_at_unchecked)]
-#![feature(split_array)]
-#![feature(stmt_expr_attributes)]
 #![feature(trait_alias)]
 #![feature(trusted_len)]
 

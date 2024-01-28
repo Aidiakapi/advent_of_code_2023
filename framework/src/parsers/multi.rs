@@ -105,11 +105,7 @@ impl<'s, const N: usize> Parser<'s> for TakeN<N> {
     type Output = &'s [u8; N];
 
     fn parse(&self, input: &'s [u8]) -> ParseResult<'s, Self::Output> {
-        if input.len() < N {
-            Err((ParseError::EmptyInput, input))
-        } else {
-            Ok(input.split_array_ref())
-        }
+        input.split_first_chunk().ok_or((ParseError::EmptyInput, input))
     }
 }
 
