@@ -6,8 +6,6 @@
 #![feature(maybe_uninit_array_assume_init)]
 #![feature(maybe_uninit_uninit_array)]
 #![feature(negative_impls)]
-#![feature(non_null_convenience)]
-#![feature(slice_split_at_unchecked)]
 #![feature(trait_alias)]
 #![feature(trusted_len)]
 

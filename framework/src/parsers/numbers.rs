@@ -16,10 +16,10 @@ macro_rules! impl_uint_parsing {
 
                 let mut remainder = &input[1..];
 
-                let mut x = (first_char as $kind) - ('0' as $kind);
+                let mut x = (first_char as $kind) - (b'0' as $kind);
                 loop {
                     let next_digit = match remainder.first() {
-                        Some(&c @ b'0'..=b'9') => (c as $kind) - ('0' as $kind),
+                        Some(&c @ b'0'..=b'9') => (c as $kind) - (b'0' as $kind),
                         _ => break,
                     };
                     x = x

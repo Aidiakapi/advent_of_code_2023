@@ -24,11 +24,8 @@ impl fmt::Display for ColoredOutput {
 }
 
 auto trait NotIntoColorOutput {}
-#[allow(suspicious_auto_trait_impls)]
 impl !NotIntoColorOutput for ColoredOutput {}
-#[allow(suspicious_auto_trait_impls)]
 impl !NotIntoColorOutput for AString {}
-#[allow(suspicious_auto_trait_impls)]
 impl !NotIntoColorOutput for &'static AStr {}
 
 impl<T: fmt::Display + NotIntoColorOutput> From<T> for ColoredOutput {

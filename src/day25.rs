@@ -115,7 +115,7 @@ impl Graph {
         for wire in wiring {
             let a_idx = node_map[&wire.a];
             for b in &wire.b {
-                let b_idx = node_map[&b];
+                let b_idx = node_map[b];
                 let (a, b) = nodes.get_two_mut(a_idx as usize, b_idx as usize).unwrap();
 
                 let edge_idx = edges.len() as u32;

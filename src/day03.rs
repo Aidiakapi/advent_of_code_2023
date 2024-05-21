@@ -4,7 +4,7 @@ type Vec2 = framework::vecs::Vec2<u32>;
 type Grid = VecGrid<u8>;
 
 fn iter_ranges(grid: &Grid) -> impl Iterator<Item = (Vec2, u32)> + '_ {
-    std::iter::from_coroutine(|| {
+    std::iter::from_coroutine(#[coroutine] || {
         for y in 0..grid.height() {
             let mut x = 0;
             while x < grid.width() {

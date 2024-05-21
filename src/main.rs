@@ -1,5 +1,4 @@
 #![feature(array_chunks)]
-#![feature(byte_slice_trim_ascii)]
 #![feature(coroutines)]
 #![feature(hash_raw_entry)]
 #![feature(iter_from_coroutine)]

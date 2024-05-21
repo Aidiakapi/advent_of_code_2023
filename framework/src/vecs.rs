@@ -235,9 +235,6 @@ macro_rules! impl_vec {
     };
 }
 
-auto trait NotSame {}
-impl<T> !NotSame for (T, T) {}
-
 impl_vec!(Vec1, NotVec1, x, "({})");
 impl_vec!(Vec2, NotVec2, x, y, "({}, {})");
 impl_vec!(Vec3, NotVec3, x, y, z, "({}, {}, {})");
