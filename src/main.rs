@@ -1,8 +1,5 @@
-#![feature(array_chunks)]
 #![feature(coroutines)]
-#![feature(hash_raw_entry)]
 #![feature(iter_from_coroutine)]
-#![feature(iter_repeat_n)]
 #![feature(map_try_insert)]
 #![feature(slice_partition_dedup)]
 

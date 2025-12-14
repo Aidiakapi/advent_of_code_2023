@@ -1,6 +1,9 @@
-use std::collections::hash_map::RawEntryMut;
+use ahash::RandomState;
+use hashbrown::hash_map::RawEntryMut;
 
 framework::day!(14, parse => pt1, pt2);
+
+type HashMap<K, V> = hashbrown::hash_map::HashMap<K, V, RandomState>;
 
 type Grid = VecGrid<Cell>;
 
@@ -122,7 +125,7 @@ fn pt2(grid: &Grid) -> u32 {
     // balls into both the vec and the set. The set stores the index into
     // cycle_states.
     let mut cycle_states = Vec::new();
-    let mut seen_states = HashMap::<u32, ()>::new();
+    let mut seen_states = HashMap::<u32, ()>::with_hasher(RandomState::new());
 
     let mut result = None;
     pt2_core(grid, |balls| {

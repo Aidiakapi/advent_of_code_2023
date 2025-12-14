@@ -16,5 +16,4 @@ pub use crate::result::Result;
 pub use crate::tests;
 pub use crate::util::{self, OrdExt, SliceExt};
 pub use crate::vecs::*;
-pub use ahash::AHashMap as HashMap;
-pub use ahash::AHashSet as HashSet;
+pub use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};

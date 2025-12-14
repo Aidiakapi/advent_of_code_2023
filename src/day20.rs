@@ -232,7 +232,7 @@ fn pt2(modules: &[ParseModule]) -> Result<u64> {
     }
 }
 
-fn parse(input: &[u8]) -> Result<Vec<ParseModule>> {
+fn parse(input: &[u8]) -> Result<Vec<ParseModule<'_>>> {
     use parsers::*;
     let module_type = token((b'%', ParseModuleType::FlipFlop))
         .or(token((b'&', ParseModuleType::Conjunction)))

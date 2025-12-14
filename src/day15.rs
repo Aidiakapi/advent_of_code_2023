@@ -50,7 +50,7 @@ fn parse(input: &[u8]) -> Result<&[u8]> {
     Ok(input.trim_ascii())
 }
 
-fn parse_instructions(input: &[u8]) -> Result<Vec<(Label, Option<NonZeroU8>)>> {
+fn parse_instructions(input: &[u8]) -> Result<Vec<(Label<'_>, Option<NonZeroU8>)>> {
     use parsers::*;
     let label = take_while((), |_, c| !matches!(c, b'-' | b'='));
     let set = token(b'=').then(pattern!(b'1'..=b'9').map(|n| NonZeroU8::new(n - b'0')));

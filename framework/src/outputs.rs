@@ -25,7 +25,7 @@ impl fmt::Display for ColoredOutput {
 
 auto trait NotIntoColorOutput {}
 impl !NotIntoColorOutput for ColoredOutput {}
-impl !NotIntoColorOutput for AString {}
+impl<T, A: std::alloc::Allocator> !NotIntoColorOutput for Vec<T, A> {}
 impl !NotIntoColorOutput for &'static AStr {}
 
 impl<T: fmt::Display + NotIntoColorOutput> From<T> for ColoredOutput {

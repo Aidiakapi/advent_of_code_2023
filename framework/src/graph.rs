@@ -1,8 +1,10 @@
-use ahash::AHashMap as HashMap;
-use std::collections::hash_map::RawEntryMut;
+use ahash::RandomState;
 use std::collections::VecDeque;
 use std::hash::Hash;
 use std::{collections::BinaryHeap, ops::Add};
+use hashbrown::hash_map::RawEntryMut;
+
+type HashMap<K, V> = hashbrown::HashMap<K, V, RandomState>;
 
 macro_rules! nodes_container {
     ($name:ident, $underlying:ident, $push_fn:ident) => {
@@ -113,7 +115,7 @@ where
         node: start,
         previous: None,
     });
-    let mut visited = HashMap::<N, (C, Option<N>)>::new();
+    let mut visited = HashMap::<N, (C, Option<N>)>::with_hasher(RandomState::new());
     let mut next_nodes = Vec::new();
     while let Some(entry) = pending.pop() {
         if is_target(&entry.node) {
@@ -200,7 +202,7 @@ where
             node: start,
         });
     }
-    let mut visited = HashMap::<N, C>::new();
+    let mut visited = HashMap::<N, C>::with_hasher(RandomState::new());
     while let Some(entry) = pending.pop() {
         if is_target(&entry.node) {
             return Some(entry.cost);

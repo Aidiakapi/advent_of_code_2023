@@ -1,7 +1,7 @@
 pub type Result<T> = std::result::Result<T, crate::error::Error>;
 
 pub auto trait IsNotResult {}
-impl<T> !IsNotResult for Result<T> {}
+impl<T, E> !IsNotResult for std::result::Result<T, E> {}
 
 pub trait IntoResult {
     type Output;

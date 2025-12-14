@@ -108,7 +108,7 @@ struct DirIter<'a> {
     index: usize,
 }
 impl DirIter<'_> {
-    fn new(directions: &[Direction]) -> DirIter {
+    fn new(directions: &[Direction]) -> DirIter<'_> {
         DirIter {
             directions,
             index: directions.len() - 1,

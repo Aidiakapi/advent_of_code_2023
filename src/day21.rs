@@ -19,7 +19,7 @@ struct Search<'a> {
 }
 
 impl<'a> Search<'a> {
-    fn new(rocks: &'a BitGrid) -> Search {
+    fn new(rocks: &'a BitGrid) -> Search<'a> {
         Search {
             rocks,
             queue: VecDeque::new(),

@@ -159,7 +159,7 @@ impl Graph {
     }
 
     fn collapse_random_edge(&mut self, rng: &mut impl Rng) {
-        let edge_idx = self.alive_edges[rng.gen_range(0..self.alive_edges.len())];
+        let edge_idx = self.alive_edges[rng.random_range(0..self.alive_edges.len())];
         let edge = &self.edges[edge_idx as usize];
         self.combine_nodes(edge.a.node_idx, edge.b.node_idx);
     }

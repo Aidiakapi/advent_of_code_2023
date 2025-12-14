@@ -19,7 +19,7 @@ pub fn init_array<T, E, const N: usize>(
         }
     }
 
-    let mut result = MaybeUninit::<T>::uninit_array::<N>();
+    let mut result = [const { MaybeUninit::<T>::uninit() }; N];
     let mut drop_guard = DropGuard {
         result: &mut result,
         initialized_count: 0,
@@ -119,7 +119,11 @@ pub struct WindowsMut<'a, T, const N: usize> {
 }
 
 impl<'a, T: 'a, const N: usize> LendingIterator for WindowsMut<'a, T, N> {
-    type Item<'e> = &'e mut [T; N] where Self: 'e, T: 'e;
+    type Item<'e>
+        = &'e mut [T; N]
+    where
+        Self: 'e,
+        T: 'e;
 
     fn next(&mut self) -> Option<Self::Item<'_>> {
         if self.len < N {

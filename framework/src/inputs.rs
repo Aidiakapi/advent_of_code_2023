@@ -53,13 +53,15 @@ impl Inputs {
         self.last_download_time = Some(current_time);
 
         let resp = ureq::get(&format!("https://adventofcode.com/2023/day/{day}/input"))
-            .set("cookie", &cookie_values)
-            .timeout(Duration::from_secs(5))
+            .header("cookie", &cookie_values)
+            .config()
+            .timeout_global(Some(Duration::from_secs(5)))
+            .build()
             .call()
             .map_err(Box::new)?;
 
         let mut buf = Vec::new();
-        resp.into_reader().read_to_end(&mut buf)?;
+        resp.into_body().into_reader().read_to_end(&mut buf)?;
         Ok(buf)
     }
 }

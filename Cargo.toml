@@ -1,21 +1,22 @@
 [package]
 name = "advent_of_code_2023"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 ahash = "0.8"
 arrayvec = "0.7"
 bitvec = "1.0"
 framework = { path = "./framework", package = "advent_of_code_framework" }
-itertools = "0.12"
+hashbrown = "0.16"
+itertools = "0.14"
 num = "0.4"
-rand = "0.8"
-rand_pcg = "0.3"
-rayon = "1.6"
+rand = "0.9"
+rand_pcg = "0.9"
+rayon = "1.10"
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 criterion-macro = "0.4"
 
 [features]

@@ -23,7 +23,8 @@ fn pt1(almanac: &Almanac) -> u64 {
 }
 
 fn pt2(almanac: &Almanac) -> u64 {
-    (almanac.seeds.array_chunks())
+    let chunks = almanac.seeds.as_chunks().0.into_iter();
+    chunks
         .map(|&[start, count]| start..start + count)
         .map(|range| get_lowest_location_from_range(almanac, range))
         .min()

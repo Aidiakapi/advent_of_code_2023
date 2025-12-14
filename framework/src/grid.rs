@@ -404,7 +404,7 @@ impl BitGrid {
     pub fn get_mut(
         &mut self,
         position: Vec2<u32>,
-    ) -> Option<BitRef<bitvec::ptr::Mut, u64, LocalBits>> {
+    ) -> Option<BitRef<'_, bitvec::ptr::Mut, u64, LocalBits>> {
         if position.x < self.size.x && position.y < self.size.y {
             Some(unsafe { self.get_unchecked_mut(position) })
         } else {
@@ -417,7 +417,7 @@ impl BitGrid {
     pub unsafe fn get_unchecked_mut(
         &mut self,
         position: Vec2<u32>,
-    ) -> BitRef<bitvec::ptr::Mut, u64, LocalBits> {
+    ) -> BitRef<'_, bitvec::ptr::Mut, u64, LocalBits> {
         let index = self.position_to_index_unchecked(position);
         unsafe { self.data.get_unchecked_mut(index) }
     }

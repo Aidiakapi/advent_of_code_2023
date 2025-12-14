@@ -86,7 +86,7 @@ $crate::paste! {
     #[cfg(feature = "criterion")]
     #[criterion_macro::criterion]
     pub fn benchmarks(c: &mut criterion::Criterion) {
-        use criterion::{black_box, Criterion};
+        use criterion::Criterion;
         let mut inputs = $crate::inputs::Inputs::new();
         let input = inputs.get($day_nr).expect("could not get input");
         let parsed = $parse_fn(&input).expect("could not parse input");

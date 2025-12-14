@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 pub trait IteratorExt: Iterator {
     /// Finds the item that is not the same as all the others in the collection
     fn find_distinct(&mut self) -> DistinctResult<Self::Item>
@@ -50,11 +52,7 @@ pub trait IteratorExt: Iterator {
         }
     }
 
-    fn next_array<const N: usize>(&mut self) -> Option<[Self::Item; N]> {
-        crate::util::init_array(|_| self.next().ok_or(())).ok()
-    }
-
-    fn collect_array<const N: usize>(&mut self) -> Option<[Self::Item; N]> {
+    fn collect_array<const N: usize>(&mut self) -> Option<[Self::Item; N]> where Self: Sized {
         let result = self.next_array()?;
         if self.next().is_some() {
             None
